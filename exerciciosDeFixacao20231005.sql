@@ -152,3 +152,42 @@ END //
 DELIMITER ;
 
 SELECT media_livros_por_editora() AS media_livros_editora;
+
+
+DELIMITER //
+CREATE FUNCTION autores_sem_livros()
+RETURNS TEXT
+BEGIN
+    DECLARE lista_autores TEXT DEFAULT '';
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE autor_nome VARCHAR(255);
+
+   
+    DECLARE cur CURSOR FOR
+        SELECT CONCAT(primeiro_nome, ' ', ultimo_nome) AS nome
+        FROM Autor
+        WHERE id NOT IN (SELECT DISTINCT id_autor FROM Livro_Autor);
+
+  
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO autor_nome;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+       
+        SET lista_autores = CONCAT(lista_autores, autor_nome, ', ');
+    END LOOP;
+
+    CLOSE cur;
+
+    RETURN lista_autores;
+END //
+DELIMITER ;
+
+
+SELECT autores_sem_livros() AS autores_sem_livros;
