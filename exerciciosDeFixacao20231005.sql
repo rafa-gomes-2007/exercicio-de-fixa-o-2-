@@ -104,3 +104,51 @@ END //
 DELIMITER ;
 
 CALL atualizar_resumos();
+
+
+DELIMITER //
+CREATE FUNCTION media_livros_por_editora()
+RETURNS DECIMAL(10, 2)
+BEGIN
+    DECLARE total_livros INT;
+    DECLARE total_editoras INT;
+
+    -- Inicializar contadores
+    SET total_livros = 0;
+    SET total_editoras = 0;
+
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE editora_id INT;
+    DECLARE editora_nome VARCHAR(255);
+
+
+    DECLARE cur CURSOR FOR SELECT id, nome_editora FROM Editora;
+
+   
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO editora_id, editora_nome;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+       
+        SELECT COUNT(*) INTO total_livros FROM Livro WHERE id_editora = editora_id;
+        SET total_editoras = total_editoras + total_livros;
+    END LOOP;
+
+    CLOSE cur;
+
+ 
+    IF total_editoras > 0 THEN
+        RETURN total_editoras / (SELECT COUNT(*) FROM Editora);
+    ELSE
+        RETURN 0;
+    END IF;
+END //
+DELIMITER ;
+
+SELECT media_livros_por_editora() AS media_livros_editora;
