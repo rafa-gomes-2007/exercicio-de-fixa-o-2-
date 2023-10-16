@@ -72,3 +72,35 @@ END //
 DELIMITER ;
 
 SELECT listar_livros_por_autor('João', 'Silva') AS livros_joao_silva;
+
+
+DELIMITER //
+CREATE FUNCTION atualizar_resumos()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE livro_id INT;
+    DECLARE livro_resumo TEXT;
+
+    
+    DECLARE cur CURSOR FOR SELECT id, resumo FROM Livro;
+
+  
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO livro_id, livro_resumo;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+
+        UPDATE Livro SET resumo = CONCAT(livro_resumo, ' Este é um excelente livro!') WHERE id = livro_id;
+    END LOOP;
+
+    CLOSE cur;
+END //
+DELIMITER ;
+
+CALL atualizar_resumos();
